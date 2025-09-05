@@ -1,0 +1,24 @@
+[project]
+name = "deployer"
+version = "0.1.0"
+package-mode = false 
+description = "Flask API for Hardhat deployment via Docker"
+authors = [
+    {name = "User",email = "user@example.com"}
+]
+readme = "README.md"
+requires-python = "^3.12"
+dependencies = [
+    "flask (>=3.1.1,<4.0.0)",
+    "docker (>=7.1.0,<8.0.0)",
+    "gunicorn (>=23.0.0,<24.0.0)",
+    "flask-swagger-ui (>=5.21.0,<6.0.0)",
+    "redis (>=6.4.0,<7.0.0)",
+    "requests (>=2.31.0,<3.0.0)",
+    "python-dotenv (>=1.1.1,<2.0.0)"
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"

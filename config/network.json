@@ -1,0 +1,54 @@
+{
+  "networks": [
+    {
+      "network": "local",
+      "port": 8545,
+      "chainID": 31337,
+      "network_name": "Anvil Local",
+      "network_slug": "anvil-node",
+      "description": "Local RPC node powered by Anvil for sandbox compilation",
+      "rpc_url": "http://localhost:8545",
+      "requires_anvil": true,
+      "deployment_type": "local"
+    },
+    {
+      "network": "ETH_TESTNET",
+      "port": null,
+      "chainID": 11155111,
+      "network_name": "Sepolia Testnet",
+      "network_slug": "sepolia",
+      "description": "Ethereum testnet for development and testing",
+      "rpc_url": "https://sepolia.infura.io/v3/YOUR_PROJECT_ID",
+      "requires_anvil": false,
+      "deployment_type": "remote"
+    },
+    {
+      "network": "BASE_TESTNET",
+      "port": null,
+      "chainID": 84531,
+      "network_name": "Base Goerli Testnet",
+      "network_slug": "base-goerli",
+      "description": "Base Layer 2 testnet built on Ethereum",
+      "rpc_url": "https://goerli.base.org",
+      "requires_anvil": false,
+      "deployment_type": "remote"
+    },
+    {
+      "network": "BSC_TESTNET",
+      "port": null,
+      "chainID": 97,
+      "network_name": "BNB Smart Chain Testnet",
+      "network_slug": "bsc-testnet",
+      "description": "Binance Smart Chain testnet for BSC development",
+      "rpc_url": "https://data-seed-prebsc-1-s1.binance.org:8545",
+      "requires_anvil": false,
+      "deployment_type": "remote"
+    }
+  ],
+  "default_network": "local",
+  "metadata": {
+    "version": "1.0.0",
+    "last_updated": "2025-08-10",
+    "description": "Supported networks for Foundry deployment"
+  }
+}

@@ -1,0 +1,742 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Smart Contract Deployer API",
+    "description": "Flask API for compiling and deploying smart contract projects using Docker containers with network support",
+    "version": "1.0.0"
+  },
+  "tags": [
+    {
+      "name": "Deployment",
+      "description": "Smart contract compilation and deployment operations"
+    },
+    {
+      "name": "Network Management",
+      "description": "Network configuration and information endpoints"
+    },
+    {
+      "name": "Administration",
+      "description": "Server administration and management endpoints"
+    }
+  ],
+  "paths": {
+    "/deploy": {
+      "post": {
+        "tags": ["Deployment"],
+        "summary": "Deploy and compile smart contract project",
+        "description": "Compiles a Hardhat or Foundry project in a Docker container and returns artifacts",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["path_url", "framework"],
+                "properties": {
+                  "path_url": {
+                    "type": "string",
+                    "description": "Local path to the smart contract project",
+                    "example": "./cloned/eurodollar-protocol"
+                  },
+                  "framework": {
+                    "type": "string",
+                    "enum": ["hardhat", "foundry"],
+                    "description": "Smart contract framework to use",
+                    "example": "foundry"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Compilation successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "artifact_path": {
+                      "type": "string",
+                      "example": "/path/to/project/.artifacts"
+                    },
+                    "stdout": {
+                      "type": "string",
+                      "description": "Last 2000 characters of stdout"
+                    },
+                    "stderr": {
+                      "type": "string",
+                      "description": "Last 2000 characters of stderr"
+                    },
+                    "duration_seconds": {
+                      "type": "number",
+                      "format": "float",
+                      "example": 45.2
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "Missing path_url in request body"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Path not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "Path does not exist: ./invalid/path"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Compilation failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": false
+                    },
+                    "artifact_path": {
+                      "type": "string",
+                      "example": ""
+                    },
+                    "stdout": {
+                      "type": "string"
+                    },
+                    "stderr": {
+                      "type": "string"
+                    },
+                    "duration_seconds": {
+                      "type": "number",
+                      "format": "float"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Docker unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "Docker connection failed. Is Docker running?"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/publish": {
+      "post": {
+        "tags": ["Deployment"],
+        "summary": "Deploy contracts on-chain",
+        "description": "Deploys Foundry contracts on-chain using forge script and caches results with network support",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["path_url", "framework"],
+                "properties": {
+                  "path_url": {
+                    "type": "string",
+                    "description": "Local path to the Foundry project",
+                    "example": "./cloned/eurodollar-protocol"
+                  },
+                  "framework": {
+                    "type": "string",
+                    "enum": ["foundry", "hardhat"],
+                    "description": "Smart contract framework",
+                    "example": "foundry"
+                  },
+                  "network": {
+                    "type": "string",
+                    "description": "Network to deploy to",
+                    "enum": ["local", "ETH_TESTNET", "BASE_TESTNET", "BSC_TESTNET"],
+                    "example": "local"
+                  },
+                  "script_path": {
+                    "type": "string",
+                    "description": "Path to the deployment script",
+                    "example": "script/Deploy.s.sol"
+                  },
+                  "fork": {
+                    "type": "boolean",
+                    "description": "Use forked anvil for local networks (default: false)",
+                    "example": false,
+                    "default": false
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Deployment successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "deployed_contracts": {
+                      "type": "object",
+                      "description": "Map of contract names to deployed addresses",
+                      "example": {
+                        "Validator": "0x5FbDB2315678afecb367f032d93F642f64180aa3",
+                        "USDE": "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0"
+                      }
+                    },
+                    "deployment_key": {
+                      "type": "string",
+                      "description": "Unique key for this deployment",
+                      "example": "./cloned/eurodollar-protocol:1692547200"
+                    },
+                    "stdout": {
+                      "type": "string",
+                      "description": "Last 2000 characters of stdout"
+                    },
+                    "stderr": {
+                      "type": "string",
+                      "description": "Last 2000 characters of stderr"
+                    },
+                    "duration_seconds": {
+                      "type": "number",
+                      "format": "float",
+                      "example": 45.2
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "Missing framework in request body"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Path or script not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "Deploy.s.sol script not found in script/ directory"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Deployment failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": false
+                    },
+                    "deployed_contracts": {
+                      "type": "object",
+                      "example": {}
+                    },
+                    "stdout": {
+                      "type": "string"
+                    },
+                    "stderr": {
+                      "type": "string"
+                    },
+                    "duration_seconds": {
+                      "type": "number",
+                      "format": "float"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Docker unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "Docker connection failed. Is Docker running?"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/server/health": {
+      "get": {
+        "tags": ["Administration"],
+        "summary": "Server health check",
+        "description": "Returns the health status of the API server",
+        "responses": {
+          "200": {
+            "description": "Service is healthy",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "healthy"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/server/anvil/start": {
+      "post": {
+        "tags": ["Administration"],
+        "summary": "Start anvil instance",
+        "description": "Starts anvil blockchain for local development",
+        "responses": {
+          "200": {
+            "description": "Anvil started successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Anvil started successfully"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/server/anvil/stop": {
+      "post": {
+        "tags": ["Administration"],
+        "summary": "Stop anvil instance",
+        "description": "Stops anvil and takes a snapshot",
+        "responses": {
+          "200": {
+            "description": "Anvil stopped successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Anvil stopped successfully"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/server/anvil/status": {
+      "get": {
+        "tags": ["Administration"],
+        "summary": "Get anvil status",
+        "description": "Returns anvil instance status and snapshot info",
+        "responses": {
+          "200": {
+            "description": "Anvil status retrieved",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "running": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "port": {
+                      "type": "integer",
+                      "example": 8545
+                    },
+                    "snapshots": {
+                      "type": "object"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/server/cache/status": {
+      "get": {
+        "tags": ["Administration"],
+        "summary": "Get image cache status",
+        "description": "Returns Docker image cache statistics",
+        "responses": {
+          "200": {
+            "description": "Cache status retrieved",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "cached_images": {
+                      "type": "integer",
+                      "example": 2
+                    },
+                    "total_size": {
+                      "type": "string",
+                      "example": "1.2GB"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/server/cache/clear": {
+      "post": {
+        "tags": ["Administration"],
+        "summary": "Clear image cache",
+        "description": "Clears Docker image cache (optionally specific image)",
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "image_tag": {
+                    "type": "string",
+                    "description": "Specific image to clear (optional)",
+                    "example": "foundry-deployer:latest"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Cache cleared successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Cleared all image cache"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/networks": {
+      "get": {
+        "tags": ["Network Management"],
+        "summary": "List all available networks",
+        "description": "Returns all available networks for deployment",
+        "responses": {
+          "200": {
+            "description": "Networks retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "networks": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "network": {
+                            "type": "string",
+                            "example": "local"
+                          },
+                          "network_name": {
+                            "type": "string",
+                            "example": "Anvil Local"
+                          },
+                          "chainID": {
+                            "type": "integer",
+                            "example": 31337
+                          },
+                          "description": {
+                            "type": "string",
+                            "example": "Local RPC node powered by Anvil"
+                          },
+                          "deployment_type": {
+                            "type": "string",
+                            "enum": ["local", "remote"],
+                            "example": "local"
+                          },
+                          "requires_anvil": {
+                            "type": "boolean",
+                            "example": true
+                          }
+                        }
+                      }
+                    },
+                    "default_network": {
+                      "type": "string",
+                      "example": "local"
+                    },
+                    "total_networks": {
+                      "type": "integer",
+                      "example": 4
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/networks/{network_name}": {
+      "get": {
+        "tags": ["Network Management"],
+        "summary": "Get network information",
+        "description": "Returns information about a specific network",
+        "parameters": [
+          {
+            "name": "network_name",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Name of the network"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Network information retrieved",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "network": {
+                      "type": "string",
+                      "example": "local"
+                    },
+                    "network_name": {
+                      "type": "string",
+                      "example": "Anvil Local"
+                    },
+                    "chainID": {
+                      "type": "integer",
+                      "example": 31337
+                    },
+                    "description": {
+                      "type": "string",
+                      "example": "Local RPC node powered by Anvil"
+                    },
+                    "deployment_type": {
+                      "type": "string",
+                      "enum": ["local", "remote"],
+                      "example": "local"
+                    },
+                    "requires_anvil": {
+                      "type": "boolean",
+                      "example": true
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Network not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "Network not found: invalid_network"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/server/foundry-cache/status": {
+      "get": {
+        "tags": ["Administration"],
+        "summary": "Get foundry cache status",
+        "description": "Returns Foundry execution cache statistics",
+        "responses": {
+          "200": {
+            "description": "Foundry cache status retrieved",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "cached_compilations": {
+                      "type": "integer",
+                      "example": 5
+                    },
+                    "cache_enabled": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "cache_ttl_seconds": {
+                      "type": "integer",
+                      "example": 3600
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/server/foundry-cache/clear": {
+      "post": {
+        "tags": ["Administration"],
+        "summary": "Clear foundry cache",
+        "description": "Clears Foundry execution cache (optionally specific pattern)",
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "pattern": {
+                    "type": "string",
+                    "description": "Specific pattern to clear (optional)",
+                    "example": "project*"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Foundry cache cleared successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Cleared all foundry cache"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
