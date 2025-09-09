@@ -2,6 +2,11 @@
 
 he ultimate sandbox for developers. Deploy anything, anywhere, without configuration.  Isolate from hacks, scripts, compromised codebase. no more git clone and installs to test or contribute to anything spin up anything in 10s
 
+
+## How it works 
+
+enter a github url , KV34.sh tells you the env keys needed you parse them in input boxes  and deploy a 5 minutes sandbox of that repository to run your tests 
+
 ## Setup
 
 1. Install dependencies with Poetry:
