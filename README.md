@@ -1,6 +1,6 @@
-# Smart Contract Deployer API
+# ZERO CONFIG EPHEMERAL DEPLOYMENT SANDBOX
 
-A minimal Flask API that compiles and deploys Hardhat/Foundry projects using Docker containers.
+he ultimate sandbox for developers. Deploy anything, anywhere, without configuration.  Isolate from hacks, scripts, compromised codebase. no more git clone and installs to test or contribute to anything spin up anything in 10s
 
 ## Setup
 
@@ -16,14 +16,7 @@ poetry install --no-root
 poetry run python app.py
 ```
 
-The server will start on `http://localhost:5001`.
 
-## API Endpoints
-
-### Business Logic Endpoints
-
-#### POST /deploy
-Compiles smart contract projects (Hardhat or Foundry).
 
 **Request Body:**
 ```json
