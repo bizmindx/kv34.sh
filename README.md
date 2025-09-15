@@ -1,6 +1,6 @@
 # ZERO CONFIG EPHEMERAL DEPLOYMENT SANDBOX
 
-he ultimate sandbox for developers. Deploy anything, anywhere, without configuration.  Isolate from hacks, scripts, compromised codebase. no more git clone and installs to test or contribute to anything spin up anything in 10s
+The ultimate sandbox for developers. Deploy anything, anywhere, without configuration.  Isolate from hacks, scripts, compromised codebase. no more git clone and installs to test or contribute to anything spin up anything in 10s
 
 
 ## How it works 
